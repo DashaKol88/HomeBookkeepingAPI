@@ -1,5 +1,5 @@
 import json
-
+from datetime import datetime
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
@@ -56,4 +56,38 @@ def transaction_latest(request):
         transactions.values('transaction_date', 'transaction_type', 'transaction_category__category_name',
                             'transaction_sum',
                             'transaction_comment'))
+    return JsonResponse({"transactions": transactions})
+
+
+@login_required(login_url='/auth_error')
+def transaction_filter(request):
+    account_data = get_object_or_404(Account, account_owner=request.user)
+    transactions = Transaction.objects.filter(transaction_account=account_data)
+
+    transaction_date = request.GET.get("transaction_date")
+    transaction_type = request.GET.get("transaction_type")
+    transaction_category = request.GET.get("transaction_category")
+    transaction_start_date = request.GET.get("transaction_start_date")
+    transaction_end_date = request.GET.get("transaction_end_date")
+
+    if transaction_date:
+        transaction_date = datetime.strptime(transaction_date, '%Y-%m-%d')
+        transactions = transactions.filter(transaction_date=transaction_date)
+    elif transaction_start_date and transaction_end_date:
+        transaction_start_date = datetime.strptime(transaction_start_date, '%Y-%m-%d')
+        transaction_end_date = datetime.strptime(transaction_end_date, '%Y-%m-%d')
+        transactions = transactions.filter(transaction_date__range=[transaction_start_date, transaction_end_date])
+
+    if transaction_type and transaction_type == "Expense":
+        transactions = transactions.filter(transaction_type=0)
+    elif transaction_type and transaction_type == "Income":
+        transactions = transactions.filter(transaction_type=1)
+
+    if transaction_category:
+        transactions = transactions.filter(transaction_category__category_name=transaction_category)
+
+    transactions = list(
+        transactions.values('transaction_date', 'transaction_type', 'transaction_category__category_name',
+                            'transaction_sum', 'transaction_comment'))
+
     return JsonResponse({"transactions": transactions})
