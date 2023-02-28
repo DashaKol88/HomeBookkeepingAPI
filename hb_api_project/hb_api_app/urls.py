@@ -9,5 +9,6 @@ urlpatterns = [
     path('api/user/account', views.user_account, name='user_account'),
     path('api/transaction/latest', views.transaction_latest, name='transaction_latest'),
     path('api/transaction/filter', views.transaction_filter, name='transaction_filter'),
+    path('api/transaction/add', views.transaction_add, name='transaction_add'),
 
 ]

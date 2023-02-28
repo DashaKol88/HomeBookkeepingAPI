@@ -1,12 +1,14 @@
 import json
 from datetime import datetime
+from decimal import Decimal
+
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_http_methods
 
-from .models import Account, Transaction
+from .models import Account, Transaction, TransactionCategory
 
 
 # Create your views here.
@@ -91,3 +93,33 @@ def transaction_filter(request):
                             'transaction_sum', 'transaction_comment'))
 
     return JsonResponse({"transactions": transactions})
+
+
+@login_required(login_url='/auth_error')
+@require_http_methods(["POST"])
+def transaction_add(request):
+    account_data = get_object_or_404(Account, account_owner=request.user)
+    try:
+        data = json.loads(request.body)
+        transaction_type = int(data['transaction_type'])
+        transaction_category = TransactionCategory.objects.get(category_name=str(data['transaction_category']))
+        transaction_date = datetime.strptime(data['transaction_date'], '%Y-%m-%d')
+        transaction_sum = abs(Decimal(data['transaction_sum']))
+        transaction_comment = str(data['transaction_comment'])
+    except:
+        return JsonResponse(status=400, data={"error": "Bad request"})
+
+    transaction = Transaction(transaction_account=account_data, transaction_type=transaction_type,
+                              transaction_category=transaction_category, transaction_date=transaction_date,
+                              transaction_sum=transaction_sum, transaction_comment=transaction_comment)
+    if transaction_type == 1:
+        account_data.account_balance += transaction_sum
+    elif transaction_type == 0:
+        account_data.account_balance -= transaction_sum
+    else:
+        return JsonResponse(status=400, data={"error": "Bad request"})
+
+    account_data.save()
+    transaction.save()
+
+    return JsonResponse({"transaction": transaction.id})
