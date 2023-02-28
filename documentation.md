@@ -31,6 +31,7 @@ method: POST
 ```
 POST /api/transaction/add HTTP/1.1
 Host: 127.0.0.1:8000
+Cookie: sessionid=12345
 Content-Type: application/json
 
 {"transaction_type":"0", "transaction_category":"transport", "transaction_date": "2023-02-28", "transaction_sum": "20.00", "transaction_comment": "bus"}
@@ -43,6 +44,20 @@ method: POST
 ```
 POST /api/transaction/7/delete HTTP/1.1
 Host: 127.0.0.1:8000
+Cookie: sessionid=12345
 Content-Type: application/json
+```
 
+### transaction statistic
+/api/transaction/statistic 
+method: GET  
+```
+Return transaction statistic for selection period
+ api/transaction/statistic?transaction_start_date=2023-02-01&transaction_end_date=2023-02-27
+```
+
+```
+GET /api/transaction/statistic?transaction_start_date=2023-02-01&transaction_end_date=2023-02-27 HTTP/1.1
+Host: 127.0.0.1:8000
+Cookie: sessionid=12345
 ```

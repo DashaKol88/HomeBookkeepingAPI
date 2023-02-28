@@ -4,6 +4,7 @@ from decimal import Decimal
 
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
+from django.db.models import Sum
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_http_methods
@@ -99,6 +100,28 @@ def transaction_filter(request):
                             'transaction_sum', 'transaction_comment'))
 
     return JsonResponse({"transactions": transactions})
+
+
+@login_required(login_url='/auth_error')
+@require_http_methods(["GET"])
+def transaction_statistic(request):
+    account_data = get_object_or_404(Account, account_owner=request.user)
+    transactions = Transaction.objects.filter(transaction_account=account_data)
+
+    transaction_start_date = request.GET.get("transaction_start_date")
+    transaction_end_date = request.GET.get("transaction_end_date")
+
+    if transaction_start_date and transaction_end_date:
+        transaction_start_date = datetime.strptime(transaction_start_date, '%Y-%m-%d')
+        transaction_end_date = datetime.strptime(transaction_end_date, '%Y-%m-%d')
+        transactions = transactions.filter(transaction_date__range=[transaction_start_date, transaction_end_date])
+    else:
+        return JsonResponse(status=400, data={"error": "Bad request"})
+
+    transaction_inc_sum = transactions.filter(transaction_type=1).aggregate(overall_income=Sum('transaction_sum'))
+    transaction_exp_sum = transactions.filter(transaction_type=0).aggregate(overall_expense=Sum('transaction_sum'))
+
+    return JsonResponse({"statistic_data": [transaction_inc_sum, transaction_exp_sum]})
 
 
 @login_required(login_url='/auth_error')

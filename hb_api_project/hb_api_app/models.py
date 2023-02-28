@@ -31,8 +31,9 @@ class Transaction(models.Model):
     transaction_type = models.IntegerField(choices=transaction_type_choices, default=0)
     transaction_category = models.ForeignKey(TransactionCategory, on_delete=models.SET_DEFAULT, default=0)
     transaction_date = models.DateField(default=timezone.now)
-    transaction_sum = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal('0.01'))])
+    transaction_sum = models.DecimalField(max_digits=10, decimal_places=2,
+                                          validators=[MinValueValidator(Decimal('0.01'))])
     transaction_comment = models.CharField(max_length=255)
 
     def __str__(self):
-        return f"{self.transaction_type_choices[self.transaction_type][1]}; Sum:{self.transaction_sum}; Date:{self.transaction_date}"
+        return f"Username: {self.transaction_account.account_owner.username}; Type: {self.transaction_type_choices[self.transaction_type][1]}; Sum:{self.transaction_sum}; Date:{self.transaction_date}"
