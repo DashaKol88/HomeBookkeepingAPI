@@ -12,10 +12,12 @@ from .models import Account, Transaction, TransactionCategory
 
 
 # Create your views here.
+@require_http_methods(["GET"])
 def index(request):
     return HttpResponse("Hello, it's my Bookkeeping!")
 
 
+@require_http_methods(["GET"])
 def auth_error(request):
     return JsonResponse(status=401, data={"Authenticated": "false"})
 
@@ -37,11 +39,13 @@ def user_login(request):
         return JsonResponse(status=401, data={"Authenticated": "false"})
 
 
+@require_http_methods(["POST"])
 def user_register(request):
     pass
 
 
 @login_required(login_url='/auth_error')
+@require_http_methods(["GET"])
 def user_account(request):
     account_data = Account.objects.filter(account_owner=request.user)
     account_data = list(account_data.values('account_owner__username', 'account_number', 'account_balance'))
@@ -51,6 +55,7 @@ def user_account(request):
 # Transactions
 
 @login_required(login_url='/auth_error')
+@require_http_methods(["GET"])
 def transaction_latest(request):
     account_data = get_object_or_404(Account, account_owner=request.user)
     transactions = Transaction.objects.filter(transaction_account=account_data).order_by('-transaction_date')[:10]
@@ -62,6 +67,7 @@ def transaction_latest(request):
 
 
 @login_required(login_url='/auth_error')
+@require_http_methods(["GET"])
 def transaction_filter(request):
     account_data = get_object_or_404(Account, account_owner=request.user)
     transactions = Transaction.objects.filter(transaction_account=account_data)
@@ -123,3 +129,25 @@ def transaction_add(request):
     transaction.save()
 
     return JsonResponse({"transaction": transaction.id})
+
+
+@login_required(login_url='/auth_error')
+@require_http_methods(["POST"])
+def transaction_delete(request, transaction_id):
+    account_data = get_object_or_404(Account, account_owner=request.user)
+    transaction = get_object_or_404(Transaction, pk=transaction_id, transaction_account=account_data)
+    if transaction.transaction_type == 1:
+        account_data.account_balance -= transaction.transaction_sum
+    else:
+        account_data.account_balance += transaction.transaction_sum
+    account_data.save()
+    transaction_id = transaction.id
+    transaction.delete()
+    return JsonResponse({"transaction": transaction_id})
+
+
+# Categories
+@require_http_methods(["GET"])
+def categories(request):
+    category_list = list(TransactionCategory.objects.all().values('category_type', 'category_name'))
+    return JsonResponse({'data': category_list})

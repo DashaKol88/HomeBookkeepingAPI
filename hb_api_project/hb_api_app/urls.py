@@ -10,5 +10,6 @@ urlpatterns = [
     path('api/transaction/latest', views.transaction_latest, name='transaction_latest'),
     path('api/transaction/filter', views.transaction_filter, name='transaction_filter'),
     path('api/transaction/add', views.transaction_add, name='transaction_add'),
+    path('api/transaction/<int:transaction_id>/delete', views.transaction_delete, name='transaction_delete'),
 
 ]
