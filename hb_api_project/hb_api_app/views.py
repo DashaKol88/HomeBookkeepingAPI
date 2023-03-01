@@ -9,7 +9,7 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_http_methods
 
-from .models import Account, Transaction, TransactionCategory
+from .models import Account, Transaction, TransactionCategory, PlanningTransaction
 
 
 # Create your views here.
@@ -59,7 +59,7 @@ def user_account(request):
 @require_http_methods(["GET"])
 def transaction_latest(request):
     account_data = get_object_or_404(Account, account_owner=request.user)
-    transactions = Transaction.objects.filter(transaction_account=account_data).order_by('-transaction_date')[:10]
+    transactions = Transaction.objects.filter(transaction_account=account_data).order_by('-transaction_date')
     transactions = list(
         transactions.values('transaction_date', 'transaction_type', 'transaction_category__category_name',
                             'transaction_sum',
@@ -182,3 +182,17 @@ def transaction_delete(request, transaction_id):
 def categories(request):
     category_list = list(TransactionCategory.objects.all().values('category_type', 'category_name'))
     return JsonResponse({'data': category_list})
+
+
+# Planning
+@login_required(login_url='/auth_error')
+@require_http_methods(["GET"])
+def planned_transactions(request):
+    account_data = get_object_or_404(Account, account_owner=request.user)
+    transactions = PlanningTransaction.objects.filter(transaction_account_plan=account_data).order_by('-transaction_date_plan')[:10]
+    transactions = list(
+        transactions.values('transaction_date_plan', 'transaction_type_plan', 'transaction_category_plan__category_name',
+                            'transaction_sum_plan',
+                            'transaction_comment_plan'))
+    return JsonResponse({"transactions": transactions})
+

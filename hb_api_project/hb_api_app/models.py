@@ -39,14 +39,14 @@ class Transaction(models.Model):
         return f"Username: {self.transaction_account.account_owner.username}; Type: {self.transaction_type_choices[self.transaction_type][1]}; Sum:{self.transaction_sum}; Date:{self.transaction_date}"
 
 
-class PlaningTransaction(models.Model):
+class PlanningTransaction(models.Model):
     transaction_account_plan = models.ForeignKey(Account, on_delete=models.CASCADE)
     transaction_type_choices_plan = [(0, 'Expense'), (1, 'Income')]
     transaction_type_plan = models.IntegerField(choices=transaction_type_choices_plan, default=0)
     transaction_category_plan = models.ForeignKey(TransactionCategory, on_delete=models.SET_DEFAULT, default=0)
     transaction_date_plan = models.DateField(default=timezone.now)
     transaction_sum_plan = models.DecimalField(max_digits=10, decimal_places=2,
-                                          validators=[MinValueValidator(Decimal('0.01'))])
+                                               validators=[MinValueValidator(Decimal('0.01'))])
     transaction_comment_plan = models.CharField(max_length=255)
 
     def __str__(self):
