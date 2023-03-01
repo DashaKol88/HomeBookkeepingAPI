@@ -189,10 +189,46 @@ def categories(request):
 @require_http_methods(["GET"])
 def planned_transactions(request):
     account_data = get_object_or_404(Account, account_owner=request.user)
-    transactions = PlanningTransaction.objects.filter(transaction_account_plan=account_data).order_by('-transaction_date_plan')[:10]
+    transactions = PlanningTransaction.objects.filter(transaction_account_plan=account_data).order_by(
+        '-transaction_date_plan')
     transactions = list(
-        transactions.values('transaction_date_plan', 'transaction_type_plan', 'transaction_category_plan__category_name',
+        transactions.values('transaction_date_plan', 'transaction_type_plan',
+                            'transaction_category_plan__category_name',
                             'transaction_sum_plan',
                             'transaction_comment_plan'))
     return JsonResponse({"transactions": transactions})
 
+
+@login_required(login_url='/auth_error')
+@require_http_methods(["POST"])
+def planned_transaction_add(request):
+    account_data = get_object_or_404(Account, account_owner=request.user)
+    try:
+        data = json.loads(request.body)
+        transaction_type = int(data['transaction_type'])
+        transaction_category = TransactionCategory.objects.get(category_name=str(data['transaction_category']))
+        transaction_date = datetime.strptime(data['transaction_date'], '%Y-%m-%d')
+        transaction_sum = abs(Decimal(data['transaction_sum']))
+        transaction_comment = str(data['transaction_comment'])
+    except:
+        return JsonResponse(status=400, data={"error": "Bad request"})
+
+    transaction = PlanningTransaction(transaction_account_plan=account_data, transaction_type_plan=transaction_type,
+                                      transaction_category_plan=transaction_category,
+                                      transaction_date_plan=transaction_date,
+                                      transaction_sum_plan=transaction_sum,
+                                      transaction_comment_plan=transaction_comment)
+
+    transaction.save()
+
+    return JsonResponse({"transaction": transaction.id})
+
+
+@login_required(login_url='/auth_error')
+@require_http_methods(["POST"])
+def planned_transaction_delete(request, transaction_id):
+    account_data = get_object_or_404(Account, account_owner=request.user)
+    transaction = get_object_or_404(PlanningTransaction, pk=transaction_id, transaction_account_plan=account_data)
+    transaction_id = transaction.id
+    transaction.delete()
+    return JsonResponse({"transaction": transaction_id})
