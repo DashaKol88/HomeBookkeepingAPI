@@ -121,7 +121,15 @@ def transaction_statistic(request):
     transaction_inc_sum = transactions.filter(transaction_type=1).aggregate(overall_income=Sum('transaction_sum'))
     transaction_exp_sum = transactions.filter(transaction_type=0).aggregate(overall_expense=Sum('transaction_sum'))
 
-    return JsonResponse({"statistic_data": [transaction_inc_sum, transaction_exp_sum]})
+    category_list = list(transactions.values('transaction_category__category_name'))
+    category_name_list = [
+        *set(category_list[i]['transaction_category__category_name'] for i in range(len(category_list)))]
+    statistic_data = [transaction_inc_sum, transaction_exp_sum]
+    for c in category_name_list:
+        statistic_data.append({c: transactions.filter(transaction_category__category_name=c).aggregate(
+            Sum('transaction_sum'))["transaction_sum__sum"]})
+
+    return JsonResponse({"statistic_data": statistic_data})
 
 
 @login_required(login_url='/auth_error')
