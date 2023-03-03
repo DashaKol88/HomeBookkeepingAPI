@@ -24,7 +24,7 @@ SECRET_KEY = "django-insecure-$!08r7_^_jmgg=^*s$7_kcwx7v1#f_im)@&z+21vv#1o^@^0#(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["dashakol88.pythonanywhere.com", "127.0.0.1"]
+ALLOWED_HOSTS = ["dashakol88.pythonanywhere.com"]
 
 # Application definition
 
@@ -123,3 +123,6 @@ CORS_ALLOWED_ORIGINS = [
     "https://mastermindik.github.io",
 ]
 CORS_ALLOW_CREDENTIALS = True
+
+SESSION_COOKIE_SAMESITE = 'None'
+SESSION_COOKIE_SECURE = True
