@@ -9,6 +9,21 @@ Content-Type: application/json
 {"username":"Dasha","password":"testpassword123"}
 ```
 
+
+### transaction latest
+/api/transaction/latest  
+method: GET  
+```
+Returns a list of transactions starting with the most recently added
+```
+
+```
+GET /api/transaction/latest HTTP/1.1
+Host: 127.0.0.1:8000
+Cookie: sessionid=12345
+```
+
+
 ### transaction filter
 /api/transaction/filter  
 method: GET  
@@ -60,4 +75,41 @@ Return transaction statistic for selection period
 GET /api/transaction/statistic?transaction_start_date=2023-02-01&transaction_end_date=2023-02-27 HTTP/1.1
 Host: 127.0.0.1:8000
 Cookie: sessionid=12345
+```
+
+### planned transactions
+api/planning/planned_transactions
+method: GET  
+```
+Returns a list of scheduled transactions
+```
+
+```
+GET /api/planning/planned_transactions HTTP/1.1
+Host: 127.0.0.1:8000
+Cookie: sessionid=12345
+```
+
+
+### planned transaction add
+/api/planning/transaction/add  
+method: POST  
+```
+POST /api/planning/transaction/add  HTTP/1.1
+Host: 127.0.0.1:8000
+Cookie: sessionid=12345
+Content-Type: application/json
+
+{"transaction_type":"0", "transaction_category":"transport", "transaction_date": "2023-03-08", "transaction_sum": "200.00", "transaction_comment": "taxi"}
+```
+
+
+### planned transaction delete
+api/planning/transaction/\<int:transaction_id>/delete
+method: POST  
+```
+POST /api/planning/transaction/1/delete
+Host: 127.0.0.1:8000
+Cookie: sessionid=12345
+Content-Type: application/json
 ```

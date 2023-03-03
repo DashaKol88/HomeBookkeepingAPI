@@ -61,7 +61,7 @@ def transaction_latest(request):
     account_data = get_object_or_404(Account, account_owner=request.user)
     transactions = Transaction.objects.filter(transaction_account=account_data).order_by('-transaction_date')
     transactions = list(
-        transactions.values('transaction_date', 'transaction_type', 'transaction_category__category_name',
+        transactions.values('id', 'transaction_date', 'transaction_type', 'transaction_category__category_name',
                             'transaction_sum',
                             'transaction_comment'))
     return JsonResponse({"transactions": transactions})
@@ -71,7 +71,7 @@ def transaction_latest(request):
 @require_http_methods(["GET"])
 def transaction_filter(request):
     account_data = get_object_or_404(Account, account_owner=request.user)
-    transactions = Transaction.objects.filter(transaction_account=account_data)
+    transactions = Transaction.objects.filter(transaction_account=account_data).order_by('-transaction_date')
 
     transaction_date = request.GET.get("transaction_date")
     transaction_type = request.GET.get("transaction_type")
@@ -192,10 +192,11 @@ def planned_transactions(request):
     transactions = PlanningTransaction.objects.filter(transaction_account_plan=account_data).order_by(
         '-transaction_date_plan')
     transactions = list(
-        transactions.values('transaction_date_plan', 'transaction_type_plan',
+        transactions.values('id', 'transaction_date_plan', 'transaction_type_plan',
                             'transaction_category_plan__category_name',
                             'transaction_sum_plan',
                             'transaction_comment_plan'))
+
     return JsonResponse({"transactions": transactions})
 
 
