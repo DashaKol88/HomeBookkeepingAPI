@@ -10,6 +10,56 @@ Content-Type: application/json
 ```
 
 
+### user logout
+api/user/logout
+```
+GET /api/user/logout HTTP/1.1
+Host: 127.0.0.1:8000
+Content-Type: application/json
+```
+
+### user register
+api/user/register
+method: POST  
+```
+Create new user with username, password and email and logs in
+```
+
+```
+POST /api/user/register HTTP/1.1
+Host: 127.0.0.1:8000
+Content-Type: application/json
+```
+
+
+### user account
+api/user/account
+method: GET  
+```
+Returns account_owner(username), account_number, account_balance
+```
+
+```
+GET /api/user/account HTTP/1.1
+Host: 127.0.0.1:8000
+Cookie: sessionid=12345
+```
+
+
+### categories
+api/categories
+method: GET 
+```
+Returns category_type and category_name
+```
+
+```
+GET /api/categories HTTP/1.1
+Host: 127.0.0.1:8000
+Cookie: sessionid=12345
+```
+
+
 ### transaction latest
 /api/transaction/latest  
 method: GET  
@@ -113,3 +163,5 @@ Host: 127.0.0.1:8000
 Cookie: sessionid=12345
 Content-Type: application/json
 ```
+
+

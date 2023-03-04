@@ -2,8 +2,9 @@ import json
 from datetime import datetime
 from decimal import Decimal
 
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from django.db.models import Sum
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404
@@ -40,9 +41,30 @@ def user_login(request):
         return JsonResponse(status=401, data={"Authenticated": "false"})
 
 
+@login_required(login_url='/auth_error')
+def user_logout(request):
+    logout(request)
+    return JsonResponse(status=200, data={"Logout": "true"})
+
+
 @require_http_methods(["POST"])
 def user_register(request):
-    pass
+    try:
+        data = json.loads(request.body)
+        username = data['username']
+        password = data['password']
+        email = data['email']
+        if username and password and email:
+            new_user = User.objects.create_user(username=username, email=email, password=password)
+            login(request, new_user)
+            new_account = Account(account_owner=new_user, account_number=0,
+                                  account_balance=Decimal(0))
+            new_account.save()
+            return JsonResponse(status=200, data={"register": new_user.id})
+        else:
+            return JsonResponse(status=400, data={"error": "Not all required fields are filled"})
+    except:
+        return JsonResponse(status=400, data={"error": "Bad request"})
 
 
 @login_required(login_url='/auth_error')
@@ -50,7 +72,7 @@ def user_register(request):
 def user_account(request):
     account_data = Account.objects.filter(account_owner=request.user)
     account_data = list(account_data.values('account_owner__username', 'account_number', 'account_balance'))
-    return JsonResponse({"Account": account_data})
+    return JsonResponse(status=200, data={"Account": account_data})
 
 
 # Transactions
@@ -64,7 +86,7 @@ def transaction_latest(request):
         transactions.values('id', 'transaction_date', 'transaction_type', 'transaction_category__category_name',
                             'transaction_sum',
                             'transaction_comment'))
-    return JsonResponse({"transactions": transactions})
+    return JsonResponse(status=200, data={"transactions": transactions})
 
 
 @login_required(login_url='/auth_error')
@@ -99,7 +121,7 @@ def transaction_filter(request):
         transactions.values('transaction_date', 'transaction_type', 'transaction_category__category_name',
                             'transaction_sum', 'transaction_comment'))
 
-    return JsonResponse({"transactions": transactions})
+    return JsonResponse(status=200, data={"transactions": transactions})
 
 
 @login_required(login_url='/auth_error')
@@ -129,7 +151,7 @@ def transaction_statistic(request):
         statistic_data.append({c: transactions.filter(transaction_category__category_name=c).aggregate(
             Sum('transaction_sum'))["transaction_sum__sum"]})
 
-    return JsonResponse({"statistic_data": statistic_data})
+    return JsonResponse(status=200, data={"statistic_data": statistic_data})
 
 
 @login_required(login_url='/auth_error')
@@ -159,7 +181,7 @@ def transaction_add(request):
     account_data.save()
     transaction.save()
 
-    return JsonResponse({"transaction": transaction.id})
+    return JsonResponse(status=200, data={"transaction": transaction.id})
 
 
 @login_required(login_url='/auth_error')
@@ -174,14 +196,14 @@ def transaction_delete(request, transaction_id):
     account_data.save()
     transaction_id = transaction.id
     transaction.delete()
-    return JsonResponse({"transaction": transaction_id})
+    return JsonResponse(status=200, data={"transaction": transaction_id})
 
 
 # Categories
 @require_http_methods(["GET"])
 def categories(request):
     category_list = list(TransactionCategory.objects.all().values('category_type', 'category_name'))
-    return JsonResponse({'data': category_list})
+    return JsonResponse(status=200, data={'data': category_list})
 
 
 # Planning
@@ -197,7 +219,7 @@ def planned_transactions(request):
                             'transaction_sum_plan',
                             'transaction_comment_plan'))
 
-    return JsonResponse({"transactions": transactions})
+    return JsonResponse(status=200, data={"transactions": transactions})
 
 
 @login_required(login_url='/auth_error')
@@ -222,7 +244,7 @@ def planned_transaction_add(request):
 
     transaction.save()
 
-    return JsonResponse({"transaction": transaction.id})
+    return JsonResponse(status=200, data={"transaction": transaction.id})
 
 
 @login_required(login_url='/auth_error')
@@ -232,4 +254,4 @@ def planned_transaction_delete(request, transaction_id):
     transaction = get_object_or_404(PlanningTransaction, pk=transaction_id, transaction_account_plan=account_data)
     transaction_id = transaction.id
     transaction.delete()
-    return JsonResponse({"transaction": transaction_id})
+    return JsonResponse(status=200, data={"transaction": transaction_id})
