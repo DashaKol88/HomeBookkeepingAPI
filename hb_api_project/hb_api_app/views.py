@@ -145,7 +145,7 @@ def transaction_statistic(request):
         overall_income=Sum('transaction_sum', output_field=FloatField()))
     transaction_exp_sum = transactions.filter(transaction_type=0).aggregate(
         overall_expense=Sum('transaction_sum', output_field=FloatField()))
-    print(transaction_inc_sum)
+
 
     category_list = list(transactions.values('transaction_category__category_name'))
     category_name_list = [
