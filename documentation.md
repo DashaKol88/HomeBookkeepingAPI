@@ -165,3 +165,15 @@ Content-Type: application/json
 ```
 
 
+###planned transaction statistic
+/api/planning/transaction/statistic 
+method: GET  
+```
+Returns the planned income and planned expense
+```
+
+```
+GET /api/planning/transaction/statistic?transaction_start_date=2023-03-08&transaction_end_date=2023-03-15 HTTP/1.1
+Host: 127.0.0.1:8000
+Cookie: sessionid=12345
+```

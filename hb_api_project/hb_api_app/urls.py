@@ -19,5 +19,5 @@ urlpatterns = [
     path('api/planning/transaction/add', views.planned_transaction_add, name='planned_transaction_add'),
     path('api/planning/transaction/<int:transaction_id>/delete', views.planned_transaction_delete,
          name='planned_transaction_delete'),
-
+    path('api/planning/transaction/statistic', views.planned_transaction_statistic, name='planned_transaction_statistic'),
 ]

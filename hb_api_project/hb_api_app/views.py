@@ -146,7 +146,6 @@ def transaction_statistic(request):
     transaction_exp_sum = transactions.filter(transaction_type=0).aggregate(
         overall_expense=Sum('transaction_sum', output_field=FloatField()))
 
-
     category_list = list(transactions.values('transaction_category__category_name'))
     category_name_list = [
         *set(category_list[i]['transaction_category__category_name'] for i in range(len(category_list)))]
@@ -259,3 +258,27 @@ def planned_transaction_delete(request, transaction_id):
     transaction_id = transaction.id
     transaction.delete()
     return JsonResponse(status=200, data={"transaction": transaction_id})
+
+
+@login_required(login_url='/auth_error')
+@require_http_methods(["GET"])
+def planned_transaction_statistic(request):
+    account_data = get_object_or_404(Account, account_owner=request.user)
+    transactions = PlanningTransaction.objects.filter(transaction_account_plan=account_data)
+
+    transaction_start_date = request.GET.get("transaction_start_date")
+    transaction_end_date = request.GET.get("transaction_end_date")
+
+    if transaction_start_date and transaction_end_date:
+        transaction_start_date = datetime.strptime(transaction_start_date, '%Y-%m-%d')
+        transaction_end_date = datetime.strptime(transaction_end_date, '%Y-%m-%d')
+        transactions = transactions.filter(transaction_date_plan__range=[transaction_start_date, transaction_end_date])
+    else:
+        return JsonResponse(status=400, data={"error": "Bad request"})
+
+    transaction_inc_sum = transactions.filter(transaction_type_plan=1).aggregate(
+        planned_income=Sum('transaction_sum_plan', output_field=FloatField()))
+    transaction_exp_sum = transactions.filter(transaction_type_plan=0).aggregate(
+        planned_expense=Sum('transaction_sum_plan', output_field=FloatField()))
+    statistic_data = [transaction_inc_sum, transaction_exp_sum]
+    return JsonResponse(status=200, data={"statistic_data": statistic_data})
